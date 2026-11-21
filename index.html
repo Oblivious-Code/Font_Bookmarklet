@@ -15,7 +15,7 @@
     input[type="url"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 10px; margin: 10px 0 14px; }
     .output-box { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
     textarea { width: 100%; height: 120px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
-    .preview { padding: 18px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 26px; text-align: center; transition: all 0.1s ease; }
+    .preview { padding: 18px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 26px; text-align: center; }
     .status { font-size: 13px; text-align: center; margin-bottom: 14px; color: #0071e3; font-weight: 600; word-break: break-all; }
     .slider-group { background: #f9f9fb; padding: 12px 14px; border-radius: 10px; border: 1px solid #e5e5ea; margin-bottom: 14px; }
     .slider-row { margin-bottom: 10px; }
@@ -35,7 +35,7 @@
 
     <div class="output-box" id="outputBox">
       <div class="preview" id="fontPreview">Live Font Preview: The quick brown fox</div>
-      <div class="status" id="fontStatus">Checking font...</div>
+      <div class="status" id="fontStatus">Loading font...</div>
 
       <div class="slider-group">
         <div class="slider-row">
@@ -50,7 +50,7 @@
             <span>Bounce (Playful Wobble — variable fonts)</span>
             <span id="bounceVal">0</span>
           </div>
-          <input type="range" id="bounceSlider" min="-100" max="100" step="10" value="0" oninput="updateStyles()">
+          <input type="range" id="bounceSlider" min="0" max="100" step="10" value="0" oninput="updateStyles()">
         </div>
       </div>
 
@@ -76,14 +76,18 @@
       currentFontName = decodeURIComponent(currentSlug.replace(/\+/g, " "));
       const host = "fon" + "ts.google" + "apis.com";
 
-      // Try loading with variable Weight + Bounce axes first; fallback to standard font if unsupported
-      const varUrl = "https://" + host + "/css2?family=" + currentSlug + ":BNCE,wght@-100..100,300..800&display=swap";
+      const varUrl = "https://" + host + "/css2?family=" + currentSlug + ":BNCE,wght@0..100,300..800&display=swap";
       const stdUrl = "https://" + host + "/css2?family=" + currentSlug + ":wght@300..800&display=swap";
       const basicUrl = "https://" + host + "/css2?family=" + currentSlug + "&display=swap";
 
+      // Show box immediately on tap
+      document.getElementById("outputBox").style.display = "block";
       const statusEl = document.getElementById("fontStatus");
       statusEl.textContent = "Loading " + currentFontName + "...";
       statusEl.style.color = "#0071e3";
+
+      activeCssUrl = basicUrl;
+      updateStyles();
 
       fetch(varUrl)
         .then(function(res) {
@@ -104,17 +108,16 @@
           const hasBounce = activeCssUrl.includes("BNCE");
           statusEl.textContent = "Loaded: " + currentFontName + (hasBounce ? " (Bounce & Weight enabled!)" : " (Standard font)");
           statusEl.style.color = "#28a745";
-
-          document.getElementById("outputBox").style.display = "block";
           updateStyles();
         })
         .catch(function() {
-          statusEl.textContent = "Network/CSP blocked font request.";
+          statusEl.textContent = "Loaded fallback URL for " + currentFontName;
           statusEl.style.color = "#d93025";
         });
     }
 
     function updateStyles() {
+      if (!currentFontName) return;
       const weight = document.getElementById("weightSlider").value;
       const bounce = document.getElementById("bounceSlider").value;
 
