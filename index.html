@@ -14,38 +14,26 @@
     .btn-secondary { background: #e8e8ed; color: #1d1d1f; margin-bottom: 16px; }
     input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 10px; margin: 10px 0 14px; }
     .output-box { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
-    textarea { width: 100%; height: 110px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
-    .preview { padding: 16px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 22px; text-align: center; }
+    textarea { width: 100%; height: 115px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
+    .preview { padding: 16px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 24px; text-align: center; }
     .status { font-size: 13px; text-align: center; margin-bottom: 14px; color: #0071e3; font-weight: 600; }
-    .steps { font-size: 13px; color: #515154; padding-left: 18px; }
-    .steps li { margin-bottom: 6px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Google Font Bookmarklet Maker</h1>
     <p>1. Find a font on Google Fonts, copy its link, and paste it below to build a custom one-tap bookmarklet.</p>
-    
     <a href="https://google.com" target="_blank" class="btn btn-secondary">Open Google Fonts ↗</a>
-
     <label for="fontUrl"><strong>Paste Google Fonts Link:</strong></label>
     <input type="url" id="fontUrl" placeholder="https://google.com/specimen/Shantell+Sans">
-    
     <button class="btn" onclick="generateBookmarklet()">Generate Bookmarklet</button>
 
     <div class="output-box" id="outputBox">
       <div class="preview" id="fontPreview">Live Font Preview: The quick brown fox</div>
-      <div class="status" id="fontStatus">Loading font...</div>
+      <div class="status" id="fontStatus">Checking font...</div>
       <label><strong>Your Custom Bookmarklet Code:</strong></label>
       <textarea id="codeOutput" readonly></textarea>
       <button class="btn" id="copyBtn" onclick="copyCode()">Copy Bookmarklet Code</button>
-      
-      <ol class="steps" style="margin-top:16px;">
-        <li>Tap <strong>Copy Bookmarklet Code</strong> above.</li>
-        <li>Bookmark any page in Safari (Share icon → <strong>Add Bookmark</strong>).</li>
-        <li>Open Safari Bookmarks, tap <strong>Edit</strong>, select the bookmark, clear the URL, and <strong>Paste</strong> the code.</li>
-        <li>Visit a standard webpage (like <strong>example.com</strong>) and tap the bookmark to apply <strong id="fontNameLabel"></strong>!</li>
-      </ol>
     </div>
   </div>
 
@@ -53,13 +41,13 @@
     function generateBookmarklet() {
       const rawUrl = document.getElementById("fontUrl").value.trim();
       if (!rawUrl.includes("specimen/")) {
-        alert("Please paste a valid Google Fonts specimen link (e.g., https://google.com/specimen/Shantell+Sans)");
+        alert("Paste a valid Google Fonts link (e.g., https://google.com/specimen/Shantell+Sans)");
         return;
       }
 
-      const slug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
+      const slug = rawUrl.split("specimen/").pop().split("?")[0].split("#")[0].replace(/\//g, "");
       const fontName = decodeURIComponent(slug.replace(/\+/g, " "));
-      const cssUrl = "https://fonts." + "://googleapis.com" + slug + "&display=swap";
+      const cssUrl = "https://googleapis.com" + slug + "&display=swap";
 
       const oldLink = document.getElementById("dynamicFontLink");
       if (oldLink) oldLink.remove();
@@ -71,24 +59,26 @@
       document.head.appendChild(linkEl);
 
       const previewEl = document.getElementById("fontPreview");
-      previewEl.style.fontFamily = '"' + fontName + '", sans-serif';
-      document.getElementById("fontNameLabel").textContent = fontName;
+      previewEl.style.fontFamily = '"' + fontName + '", cursive';
 
       const statusEl = document.getElementById("fontStatus");
       statusEl.textContent = "Loading " + fontName + "...";
       statusEl.style.color = "#0071e3";
 
-      linkEl.onload = function() {
-        statusEl.textContent = "Loaded: " + fontName;
-        statusEl.style.color = "#28a745";
-      };
-      linkEl.onerror = function() {
-        statusEl.textContent = "Blocked by this viewer/site's security policy";
-        statusEl.style.color = "#d93025";
-      };
+      setTimeout(function() {
+        document.fonts.load('24px "' + fontName + '"').then(function(fonts) {
+          if (fonts.length > 0) {
+            statusEl.textContent = "Loaded: " + fontName;
+            statusEl.style.color = "#28a745";
+          } else {
+            statusEl.textContent = "Failed to load: " + fontName;
+            statusEl.style.color = "#d93025";
+          }
+        });
+      }, 600);
 
       const cssRule = '*:not([class*="icon"]):not([class*="fa-"]):not(.material-icons){font-family:"' + fontName + '",sans-serif!important;}';
-      const bookmarklet = 'javascript:(function(){var l=document.createElement("link");l.rel="stylesheet";l.href="' + cssUrl + '";l.onerror=function(){alert("This website blocks external Google Fonts.");};document.head.appendChild(l);var s=document.createElement("style");s.textContent=' + JSON.stringify(cssRule) + ';document.head.appendChild(s);})();';
+      const bookmarklet = 'javascript:(function(){var l=document.createElement("link");l.rel="stylesheet";l.href="' + cssUrl + '";document.head.appendChild(l);var s=document.createElement("style");s.textContent=' + JSON.stringify(cssRule) + ';document.head.appendChild(s);})();';
 
       document.getElementById("codeOutput").value = bookmarklet;
       document.getElementById("outputBox").style.display = "block";
@@ -98,14 +88,10 @@
       const copyText = document.getElementById("codeOutput");
       copyText.select();
       copyText.setSelectionRange(0, 99999);
-      try {
-        navigator.clipboard.writeText(copyText.value);
-      } catch (e) {
-        document.execCommand("copy");
-      }
+      try { navigator.clipboard.writeText(copyText.value); } catch (e) { document.execCommand("copy"); }
       const btn = document.getElementById("copyBtn");
-      btn.textContent = "Copied! Now edit your bookmark";
-      setTimeout(function() { btn.textContent = "Copy Bookmarklet Code"; }, 2500);
+      btn.textContent = "Copied!";
+      setTimeout(function() { btn.textContent = "Copy Bookmarklet Code"; }, 2000);
     }
   </script>
 </body>
