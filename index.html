@@ -45,9 +45,9 @@
         return;
       }
 
-      const slug = rawUrl.split("specimen/").pop().split("?")[0].split("#")[0].replace(/\//g, "");
+      const slug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
       const fontName = decodeURIComponent(slug.replace(/\+/g, " "));
-      const cssUrl = "https://googleapis.com" + slug + "&display=swap";
+      const cssUrl = ["https:", "", "://googleapis.com", "css?family="].join("/") + slug + "&display=swap";
 
       const oldLink = document.getElementById("dynamicFontLink");
       if (oldLink) oldLink.remove();
