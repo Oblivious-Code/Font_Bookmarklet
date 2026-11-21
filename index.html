@@ -47,7 +47,8 @@
 
       const slug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
       const fontName = decodeURIComponent(slug.replace(/\+/g, " "));
-      const cssUrl = ["https:", "", "://googleapis.com", "css2?family="].join("/") + slug + "&display=swap";
+      const host = "fon" + "ts.google" + "apis.com";
+      const cssUrl = "https://" + host + "/css2?family=" + slug + "&display=swap";
 
       const oldLink = document.getElementById("dynamicFontLink");
       if (oldLink) oldLink.remove();
@@ -71,11 +72,11 @@
             statusEl.textContent = "Loaded: " + fontName;
             statusEl.style.color = "#28a745";
           } else {
-            statusEl.textContent = "Google returned error " + res.status + " for " + cssUrl;
+            statusEl.textContent = "Google returned error " + res.status;
             statusEl.style.color = "#d93025";
           }
         })
-        .catch(function(err) {
+        .catch(function() {
           statusEl.textContent = "Network/CSP blocked: " + cssUrl;
           statusEl.style.color = "#d93025";
         });
