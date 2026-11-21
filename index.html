@@ -6,7 +6,7 @@
   <title>Google Font Bookmarklet Generator</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Shantell-Sans, sans-serif; max-width: 540px; margin: 40px auto; padding: 20px; background: #f5f5f7; color: #1d1d1f; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 540px; margin: 40px auto; padding: 20px; background: #f5f5f7; color: #1d1d1f; }
     .card { background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
     h1 { font-size: 22px; margin-top: 0; }
     p { font-size: 15px; color: #515154; line-height: 1.5; }
@@ -47,7 +47,7 @@
 
       const slug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
       const fontName = decodeURIComponent(slug.replace(/\+/g, " "));
-      const cssUrl = ["https:", "", "://googleapis.com", "css?family="].join("/") + slug + "&display=swap";
+      const cssUrl = ["https:", "", "://googleapis.com", "css2?family="].join("/") + slug + "&display=swap";
 
       const oldLink = document.getElementById("dynamicFontLink");
       if (oldLink) oldLink.remove();
@@ -59,23 +59,22 @@
       document.head.appendChild(linkEl);
 
       const previewEl = document.getElementById("fontPreview");
-      previewEl.style.fontFamily = '"' + fontName + '", cursive';
+      previewEl.style.fontFamily = '"' + fontName + '", sans-serif';
 
       const statusEl = document.getElementById("fontStatus");
       statusEl.textContent = "Loading " + fontName + "...";
       statusEl.style.color = "#0071e3";
 
-      setTimeout(function() {
-        document.fonts.load('24px "' + fontName + '"').then(function(fonts) {
-          if (fonts.length > 0) {
-            statusEl.textContent = "Loaded: " + fontName;
-            statusEl.style.color = "#28a745";
-          } else {
-            statusEl.textContent = "Failed to load: " + fontName;
-            statusEl.style.color = "#d93025";
-          }
+      linkEl.onload = function() {
+        document.fonts.ready.then(function() {
+          statusEl.textContent = "Loaded: " + fontName;
+          statusEl.style.color = "#28a745";
         });
-      }, 600);
+      };
+      linkEl.onerror = function() {
+        statusEl.textContent = "Failed to load: " + fontName;
+        statusEl.style.color = "#d93025";
+      };
 
       const cssRule = '*:not([class*="icon"]):not([class*="fa-"]):not(.material-icons){font-family:"' + fontName + '",sans-serif!important;}';
       const bookmarklet = 'javascript:(function(){var l=document.createElement("link");l.rel="stylesheet";l.href="' + cssUrl + '";document.head.appendChild(l);var s=document.createElement("style");s.textContent=' + JSON.stringify(cssRule) + ';document.head.appendChild(s);})();';
