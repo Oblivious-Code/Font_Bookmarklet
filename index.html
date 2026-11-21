@@ -12,17 +12,22 @@
     p { font-size: 15px; color: #515154; line-height: 1.5; }
     .btn { display: inline-block; background: #0071e3; color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; font-size: 15px; border: none; cursor: pointer; width: 100%; text-align: center; }
     .btn-secondary { background: #e8e8ed; color: #1d1d1f; margin-bottom: 16px; }
-    input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 10px; margin: 10px 0 14px; }
+    input[type="url"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 10px; margin: 10px 0 14px; }
     .output-box { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
-    textarea { width: 100%; height: 115px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
-    .preview { padding: 16px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 24px; text-align: center; }
+    textarea { width: 100%; height: 120px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
+    .preview { padding: 18px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 26px; text-align: center; transition: all 0.1s ease; }
     .status { font-size: 13px; text-align: center; margin-bottom: 14px; color: #0071e3; font-weight: 600; word-break: break-all; }
+    .slider-group { background: #f9f9fb; padding: 12px 14px; border-radius: 10px; border: 1px solid #e5e5ea; margin-bottom: 14px; }
+    .slider-row { margin-bottom: 10px; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    input[type="range"] { width: 100%; accent-color: #0071e3; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Google Font Bookmarklet Maker</h1>
-    <p>1. Find a font on Google Fonts, copy its link, and paste it below to build a custom one-tap bookmarklet.</p>
+    <p>1. Find a font on Google Fonts, copy its link, and paste it below to customize weight, bounce, and build your bookmarklet.</p>
     <a href="https://google.com" target="_blank" class="btn btn-secondary">Open Google Fonts ↗</a>
     <label for="fontUrl"><strong>Paste Google Fonts Link:</strong></label>
     <input type="url" id="fontUrl" placeholder="https://google.com/specimen/Shantell+Sans">
@@ -31,6 +36,24 @@
     <div class="output-box" id="outputBox">
       <div class="preview" id="fontPreview">Live Font Preview: The quick brown fox</div>
       <div class="status" id="fontStatus">Checking font...</div>
+
+      <div class="slider-group">
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Weight (Thickness)</span>
+            <span id="weightVal">400</span>
+          </div>
+          <input type="range" id="weightSlider" min="300" max="800" step="50" value="400" oninput="updateStyles()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Bounce (Playful Wobble — variable fonts)</span>
+            <span id="bounceVal">0</span>
+          </div>
+          <input type="range" id="bounceSlider" min="-100" max="100" step="10" value="0" oninput="updateStyles()">
+        </div>
+      </div>
+
       <label><strong>Your Custom Bookmarklet Code:</strong></label>
       <textarea id="codeOutput" readonly></textarea>
       <button class="btn" id="copyBtn" onclick="copyCode()">Copy Bookmarklet Code</button>
@@ -38,6 +61,10 @@
   </div>
 
   <script>
+    let currentSlug = "";
+    let currentFontName = "";
+    let activeCssUrl = "";
+
     function generateBookmarklet() {
       const rawUrl = document.getElementById("fontUrl").value.trim();
       if (!rawUrl.includes("specimen/")) {
@@ -45,47 +72,64 @@
         return;
       }
 
-      const slug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
-      const fontName = decodeURIComponent(slug.replace(/\+/g, " "));
+      currentSlug = rawUrl.split("specimen/").pop().split("?").shift().split("#").shift().replace(/\//g, "");
+      currentFontName = decodeURIComponent(currentSlug.replace(/\+/g, " "));
       const host = "fon" + "ts.google" + "apis.com";
-      const cssUrl = "https://" + host + "/css2?family=" + slug + "&display=swap";
 
-      const oldLink = document.getElementById("dynamicFontLink");
-      if (oldLink) oldLink.remove();
-
-      const linkEl = document.createElement("link");
-      linkEl.id = "dynamicFontLink";
-      linkEl.rel = "stylesheet";
-      linkEl.href = cssUrl;
-      document.head.appendChild(linkEl);
-
-      const previewEl = document.getElementById("fontPreview");
-      previewEl.style.fontFamily = '"' + fontName + '", sans-serif';
+      // Try loading with variable Weight + Bounce axes first; fallback to standard font if unsupported
+      const varUrl = "https://" + host + "/css2?family=" + currentSlug + ":BNCE,wght@-100..100,300..800&display=swap";
+      const stdUrl = "https://" + host + "/css2?family=" + currentSlug + ":wght@300..800&display=swap";
+      const basicUrl = "https://" + host + "/css2?family=" + currentSlug + "&display=swap";
 
       const statusEl = document.getElementById("fontStatus");
-      statusEl.textContent = "Fetching: " + cssUrl;
+      statusEl.textContent = "Loading " + currentFontName + "...";
       statusEl.style.color = "#0071e3";
 
-      fetch(cssUrl)
+      fetch(varUrl)
         .then(function(res) {
-          if (res.ok) {
-            statusEl.textContent = "Loaded: " + fontName;
-            statusEl.style.color = "#28a745";
-          } else {
-            statusEl.textContent = "Google returned error " + res.status;
-            statusEl.style.color = "#d93025";
-          }
+          if (res.ok) return varUrl;
+          return fetch(stdUrl).then(function(r2) { return r2.ok ? stdUrl : basicUrl; });
+        })
+        .then(function(validUrl) {
+          activeCssUrl = validUrl;
+          const oldLink = document.getElementById("dynamicFontLink");
+          if (oldLink) oldLink.remove();
+
+          const linkEl = document.createElement("link");
+          linkEl.id = "dynamicFontLink";
+          linkEl.rel = "stylesheet";
+          linkEl.href = activeCssUrl;
+          document.head.appendChild(linkEl);
+
+          const hasBounce = activeCssUrl.includes("BNCE");
+          statusEl.textContent = "Loaded: " + currentFontName + (hasBounce ? " (Bounce & Weight enabled!)" : " (Standard font)");
+          statusEl.style.color = "#28a745";
+
+          document.getElementById("outputBox").style.display = "block";
+          updateStyles();
         })
         .catch(function() {
-          statusEl.textContent = "Network/CSP blocked: " + cssUrl;
+          statusEl.textContent = "Network/CSP blocked font request.";
           statusEl.style.color = "#d93025";
         });
+    }
 
-      const cssRule = '*:not([class*="icon"]):not([class*="fa-"]):not(.material-icons){font-family:"' + fontName + '",sans-serif!important;}';
-      const bookmarklet = 'javascript:(function(){var l=document.createElement("link");l.rel="stylesheet";l.href="' + cssUrl + '";document.head.appendChild(l);var s=document.createElement("style");s.textContent=' + JSON.stringify(cssRule) + ';document.head.appendChild(s);})();';
+    function updateStyles() {
+      const weight = document.getElementById("weightSlider").value;
+      const bounce = document.getElementById("bounceSlider").value;
+
+      document.getElementById("weightVal").textContent = weight;
+      document.getElementById("bounceVal").textContent = bounce;
+
+      const previewEl = document.getElementById("fontPreview");
+      previewEl.style.fontFamily = '"' + currentFontName + '", sans-serif';
+      previewEl.style.fontWeight = weight;
+      previewEl.style.fontVariationSettings = '"BNCE" ' + bounce;
+
+      const cssRule = '*:not([class*="icon"]):not([class*="fa-"]):not(.material-icons){font-family:"' + currentFontName + '",sans-serif!important;font-weight:' + weight + '!important;font-variation-settings:"BNCE" ' + bounce + '!important;}';
+      const bookmarklet = 'javascript:(function(){var l=document.createElement("link");l.rel="stylesheet";l.href="' + activeCssUrl + '";document.head.appendChild(l);var s=document.createElement("style");s.textContent=' + JSON.stringify(cssRule) + ';document.head.appendChild(s);})();';
 
       document.getElementById("codeOutput").value = bookmarklet;
-      document.getElementById("outputBox").style.display = "block";
     }
 
     function copyCode() {
