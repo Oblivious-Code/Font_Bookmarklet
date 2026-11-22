@@ -60,18 +60,6 @@
     </div>
     <p>1. Find a font on Google Fonts, copy its link, and paste it below to customize weight, bounce, and build your bookmarklet.</p>
 </script>
-<const url = "https://google.com"; // Replace with your URL variable
-<const container = document.getElementById("link-container");
-
-// Create an actual <a> element
-<const a = document.createElement("a");
-<a.href = url;              // <-- This makes it clickable
-<a.textContent = url;       // <-- This sets the visible text
-<a.target = "_blank";       // <-- Optional: opens in a new tab
-
-<container.innerHTML = "";  // Clear old content
-<container.appendChild(a);  // Add the clickable link to the page
-
     <a href="https://google.com" target="_blank" class="btn btn-secondary">Open Google Fonts ↗</a>
     <label for="fontUrl"><strong>Paste Google Fonts Link:</strong></label>
     <input type="url" id="fontUrl" placeholder="https://google.com/specimen/Shantell+Sans">
