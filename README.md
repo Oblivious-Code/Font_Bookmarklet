@@ -19,7 +19,7 @@ A lightweight web tool that turns any Google Font into a custom browser bookmark
 
 ### 1. Generate Your Bookmarklet
 1. Open the [Google Font Bookmarklet Maker](https://github.io).
-2. Click **Open Google Fonts**, choose a font, and copy its link.
+2. Click **Open Google Fonts**, choose a font, and copy its link! eg… https://fonts.google.com/specimen/Google+Sans+Code?preview.script=Latn just find the font you want and click on it and copy the link it should look something like “fonts.google.com/specimen”
 3. Paste the link into the generator and click **Generate Bookmarklet**.
 4. Use the sliders to customize the **Weight** and **Bounce**, then click **Copy Bookmarklet Code**.
 
