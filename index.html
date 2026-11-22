@@ -15,7 +15,9 @@
     input[type="url"] { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #d2d2d7; border-radius: 10px; margin: 10px 0 14px; }
     .output-box { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
     textarea { width: 100%; height: 120px; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 10px; border: 1px solid #d2d2d7; background: #f9f9fb; margin-bottom: 10px; }
-    .preview { padding: 18px; border-radius: 10px; background: #f5f5f7; margin-bottom: 8px; font-size: 26px; text-align: center; }
+    .preview-hint { font-size: 11px; color: #86868b; text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .preview { padding: 18px; border-radius: 10px; background: #f5f5f7; border: 1.5px dashed #c7c7cc; margin-bottom: 8px; font-size: 26px; text-align: center; outline: none; min-height: 68px; cursor: text; }
+    .preview:focus { border-color: #0071e3; background: #fff; }
     .status { font-size: 13px; text-align: center; margin-bottom: 14px; color: #0071e3; font-weight: 600; }
     .slider-group { background: #f9f9fb; padding: 12px 14px; border-radius: 10px; border: 1px solid #e5e5ea; margin-bottom: 14px; }
     .slider-row { margin-bottom: 10px; }
@@ -34,7 +36,8 @@
     <button class="btn" onclick="generateBookmarklet()">Generate Bookmarklet</button>
 
     <div class="output-box" id="outputBox">
-      <div class="preview" id="fontPreview">Live Font Preview: The quick brown fox</div>
+      <div class="preview-hint">Tap below to type your own preview text</div>
+      <div class="preview" id="fontPreview" contenteditable="true" spellcheck="false">The quick brown fox jumps over the lazy dog</div>
       <div class="status" id="fontStatus">Loading font...</div>
 
       <div class="slider-group">
@@ -71,7 +74,7 @@
         return;
       }
 
-      const testUrl = urls[index];
+      const testUrl = urls.slice(index, index + 1).pop();
       const oldLink = document.getElementById("dynamicFontLink");
       if (oldLink) oldLink.remove();
 
@@ -106,10 +109,11 @@
       currentFontName = decodeURIComponent(slug.replace(/\+/g, " "));
       const host = "fon" + "ts.google" + "apis.com";
 
+      const baseUrl = "https://" + host + "/css2?family=" + slug + "&display=swap";
       const urls = [
         "https://" + host + "/css2?family=" + slug + ":BNCE,wght@0..100,300..800&display=swap",
         "https://" + host + "/css2?family=" + slug + ":wght@300..800&display=swap",
-        "https://" + host + "/css2?family=" + slug + "&display=swap"
+        baseUrl
       ];
 
       document.getElementById("outputBox").style.display = "block";
@@ -117,7 +121,7 @@
       statusEl.textContent = "Loading " + currentFontName + "...";
       statusEl.style.color = "#0071e3";
 
-      activeCssUrl = urls[2];
+      activeCssUrl = baseUrl;
       updateStyles();
       tryLoadUrls(urls, 0, statusEl);
     }
