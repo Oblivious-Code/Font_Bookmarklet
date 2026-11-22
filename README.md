@@ -34,7 +34,8 @@ A lightweight web tool that turns any Google Font into a custom browser bookmark
 1. Copy your bookmarklet code from the generator.
 2. Bookmark any webpage in your mobile browser.
 3. Open your **Bookmarks**, edit the bookmark you just saved, give it a short name (e.g., `Font`), and replace the **URL** with your copied `javascript:...` code.
-4. Go to the website you want to test, tap the **address bar**, type the short bookmark name (`Font`), and tap the bookmark suggestion with the star icon to run it on the current page.
+4. Go to the website you want to test, tap the **3 Dots** and press bookmarks, now go to your bookmark you saved.
+5. Press your bookmark on your selected website and the font will appear on all of the website page! Unless parts of it are images.
 
 ---
 
