@@ -2,7 +2,7 @@
 
 A lightweight web tool that turns any Google Font into a custom browser bookmarklet—complete with adjustable font weight and a playful variable-font bounce effect—so you can preview any font on any live website in one click.
 
-🔗 **Live App:** [oblivious-code.github.io/Font_Bookmarklet](https://github.io)
+🔗 **Live App:** [Font JS Maker](https://oblivious-code.github.io/Font_Bookmarklet/)
 
 ---
 
